@@ -1,4 +1,4 @@
-#!/usr/local/anaconda/bin/python
+#!/mirror/scratch/hbarker/pkgs/anaconda/bin/python
 
 #Make (background checked) mosaics from confidence corrected ccds of the same filter using my data tree
 
