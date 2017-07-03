@@ -5,88 +5,191 @@
 import numpy as np
 import os
 import shutil
-from fnmatch import fnmatch
 import sys
 from astropy.io import fits
 
 import make_lists
 
 def make_dir_tree(dirname):
+
     if not os.path.exists(dirname):
         os.makedirs(dirname)
-        print "Created %s" %(dirname)
+        print "Created", dirname
+        
     if not os.path.exists(dirname + '/single'):
         os.makedirs(dirname + '/single')
-        print "Created %s" %(dirname + '/single')
+        print "Created", dirname, '/single'
+        
     if not os.path.exists(dirname + '/calib'):
         os.makedirs(dirname + '/calib')
-        print "Created %s" %(dirname + '/calib')
+        print "Created", dirname,'/calib'
+        
     if not os.path.exists(dirname + '/catalogues'):
         os.makedirs(dirname + '/catalogues')
-        print "Created %s" %(dirname + '/catalogues') 
+        print "Created", dirname,'/catalogues' 
+
+
+
+
+
 
 args = make_lists.get_vphas_num()
+working_path  = os.getcwd()
+vphas_dir =working_path + '/vphas_' + args.vphas_num 
 
-current_path  = os.getcwd()
+
+
+#create a directory for the files to be sorted into
+vphas_ex_path = working_path + '/vphas_' + args.vphas_num + '_ex'
+if not os.path.exists( vphas_ex_path):
+	os.makedirs( vphas_ex_path)
+	print 'Created', vphas_ex_path
+
+
+
 
 #read filelist from file into an array
-filelist_array = []
-filelistPath = current_path + '/vphas_' + args.vphas_num + '/filelist_' + args.vphas_num
+filelist_path = vphas_dir + '/filelist_' + args.vphas_num
 
-if not os.path.exists(filelistPath):
-    print "Filelist cannot be found: %s" %filelistPath
+if not os.path.exists(filelist_path):
+    print "Filelist cannot be found: ", filelist_path
 
-with open(filelistPath) as fpath:
-    for line in fpath:
-        filelist_array.append(line[:-1]) #remove /n
-print "File list read"
+with open(filelist_path) as fpath:
+    filelist = [line.strip().split()[0] for line in fpath]
+print "File list read in"
 
 
-#Break up file list array into blocks. Assumes filelist is in order and there is a single, catalogue and two calib fields.
-blockarray = []
-for x in xrange(0, len(filelist_array), 4):
-    block = filelist_array[x:x+4]
-    code = block[0].lstrip('single/o').rstrip('.fit')
-    block.insert(0,code)
-    #checks first element is single and shows error if not
-    if 'single' in block[1]: 
-	blockarray.append(block)
-    else:
-        print "Problem"
-        print block
-        print
-        print "Checking previous block: %s" % blockarray[-1][0]
-        check_path = current_path + '/vphas_' + args.vphas_num + '/' + blockarray[-1][0]
-        print check_path
-        check_file = fits.open(check_path)
-        print "File opened"
-        header = check_file[0].header
-        print "Correct filter: "
-        esofilter = header['HIERARCH ESO INS FILT1 NAME']
-        print esofilter
-        print "Change %s then rerun" %filelistPath
-        sys.exit()
- 
- 
-for block in blockarray:
-    #add colour to block[0] using calib file in block[3]
-    colour = block[3][6:][0]
-    if colour=='N':colour='NB'
 
-    newDirPath = current_path + '/vphas_' + args.vphas_num  + '_ex/'+colour+'_'+ block[0]
-    print "Making new directory: %s " %newDirPath
-    make_dir_tree(newDirPath)
+#Break up file list array into A, B and C, blocks.
+
+#the filelist should have filenames in the order:
+#single/xxxx
+#catalogues/xxxx
+#calib/xxxx
+#calib/xxxx
+#so get lines in groups of 4	
 
 
-    for i in range(1,len(block)):
-        old_path = current_path + '/vphas_' + args.vphas_num  + '/' + block[i]
-        print old_path
-        new_path = current_path + '/vphas_' + args.vphas_num + '_ex/'+colour+'_' + block[0] + '/' + block[i]
-        print new_path
-        if not os.path.exists(new_path):
-            shutil.copyfile(old_path, new_path)
-            print "Copied"
- 
- 
+for x in range(0, len(filelist), 4):
+
+	filegroup = filelist[x: x+4]
+
+	#check the filenames to make sure they're in the expected order
+	if 'single' not in filegroup[0]:
+		print 'Filelist is not in the expected order'
+		for l in filegroup: print l
+		sys.exit()
+	if 'catalogues' not in filegroup[1]:
+		print 'Filelist is not in the expected order'
+		for l in filegroup: print l
+		sys.exit()
+	if 'calib' not in filegroup[2]:
+		print 'Filelist is not in the expected order'
+		for l in filegroup: print l
+		sys.exit()
+	if 'calib' not in filegroup[3]:
+		print 'Filelist is not in the expected order'
+		for l in filegroup: print l
+		sys.exit()
+
+
+	#get the "root" filename. eg. o20240113_00120
+	root = filegroup[0].lstrip('single/o').rstrip('.fit')
+	print root
+
+	#open the single file to see if it is in A, B, or C block
+	#and get the filtername
+	open_single = fits.open( vphas_dir + '/' + filegroup[0] )
+	
+	
+	#check the eso grade and continue if it isn't A or B
+	acceptable_grades = ['A', 'B', 'D'] #according to the casu webpages, D grades won't be repeated
+	try:
+		esograde = open_single[0].header['ESOGRADE']
+	except:
+		#assume the pointing is good
+		#esograde = 'a'
+		continue
+
+
+		
+	if esograde not in acceptable_grades:
+		continue
+	
+	
+
+	
+	
+	#from Geerts email
+	#hh => red concat, h-alpha
+	#hr => red concat, r
+	#hi => red concat, i
+
+	#uu => blue concat, u
+	#ug => blue concat, g
+	#ur => blue concat, r
+	
+	
+	filterlabel = open_single[0].header['HIERARCH ESO OBS NAME']
+	_, filterlabel = filterlabel.rsplit('_', 1)
+	
+	if filterlabel[:2] == 'hr': filtername = 'r'
+	elif filterlabel[:2] == 'ur': filtername = 'r2'	
+	elif filterlabel[:2] == 'uu': filtername = 'u'
+	elif filterlabel[:2] == 'ug': filtername = 'g'
+	elif filterlabel[:2] == 'g': filtername = 'g'
+	elif filterlabel[:2] == 'hi': filtername = 'i'
+	elif filterlabel[:2] == 'hh': filtername = 'NB'
+	else:
+		print 'Error finding filter name'
+		print filegroup[0]
+		print open_single[0].header['HIERARCH ESO OBS NAME']
+		raw_input('Press any key to continue')
+	
+	
+	
+	
+	
+	block_num = open_single[0].header['HIERARCH ESO TPL EXPNO']
+	
+	
+	#IMPORANT
+	# THIS DOESN'T ALWAYS WORK - YOU MUST - MUUUUUUST - CHECK BEFORE CONTINUING
+	if filtername=='g' or filtername=='NB':
+		if block_num==1: block = 'a'
+		elif block_num==2: block = 'b'
+		elif block_num==3: block = 'c'
+		
+	else:
+		if block_num==1: block = 'a'
+		elif block_num==2: block = 'b'
+		
+	
+
+	open_single.close()
+	
+	
+	
+
+	
+	#create directories to sort this block into
+	root_dir = vphas_ex_path + '/' + filtername + '_' + root + '_' + block
+	make_dir_tree( root_dir)
+	
+	
+	#move files into these directories
+	for fname in filegroup:
+	
+		oldname = vphas_dir + '/' + fname
+		newname = root_dir + '/' + fname
+		
+		if not os.path.exists(newname):
+			shutil.copyfile(oldname, newname)
+			print 'Copied', newname
+	
+
+print
 print "File sorting complete"
+print "REMEMBER"
+print "Check the a, b, c pointings have been assigned correctly"
 

@@ -10,7 +10,7 @@ from datetime import datetime
 
 
 #request number is the number supplied by the CASU website
-reqNo = raw_input('Enter request number: ')
+#reqNo = raw_input('Enter request number: ')
 
 #the pointing number is used to label the directories
 vphas_num = raw_input('Enter the vphas pointing number: ')
@@ -30,18 +30,22 @@ if bin_choice == 'y':
 
 startTime = datetime.now()
 
-print "Downloading..."
-sp.call(["download_vphas.sh", reqNo, vphas_num])
-print
+
+#A scipt I use to download requested files from CASU. This isn't uploaded as it includes my password
+#print "Downloading..."
+#sp.call(["download_vphas.sh", reqNo, vphas_num])
+#print
 print "Sorting files..."
 os.system("sort_vphas.py -v %s" %vphas_num)
+print 'Please check the sorted files'
+raw_input('Press any key to continue')
 print
 print "Decompressing files..."
 os.system("decompress_vphas.py -v %s" %vphas_num)
 print
 print "Extracting ccds..."
-os.system("extract_ccds.py -v %s" %vphas_num)
-print
+os.system("extract_ccds.py -v %s" %vphas_num)	
+print 
 print "Confidence overlaying..."
 os.system("loop_conf_overlay.py -v %s" %vphas_num)
 print

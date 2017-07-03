@@ -1,4 +1,4 @@
-#!/usr/local/anaconda/bin/python
+#!/mirror/scratch/hbarker/pkgs/anaconda/bin/python
 
 #script to search the for ccds of the same colour and bin the pixels in each ccd
 
@@ -13,58 +13,109 @@ import sys
 import make_lists
 
 args = make_lists.get_args()
+ex_path = os.getcwd() + '/vphas_' + args.vphas_num + '_ex'
 
-current_path  = os.getcwd()
-ex_path = current_path + '/vphas_' + args.vphas_num + '_ex'
+filternames = ['u', 'g', 'r', 'r2', 'i', 'NB', 'Halpha_div_R']
 
-#need to look for unbinned Halpha_div_R and Halpha_sub_R
-available_colours = make_lists.list_colours_full(ex_path, 'n', '')
+for filtername in filternames:
 
-for colour in available_colours:
-   colour_choice = colour
-   colour_choice += '_'
+	dirnames = glob.glob( ex_path + '/'+filtername+'*' )
+	
+	#loop over the block a,b (and c) directories
+	for dirpath in dirnames:
+	
+		print dirpath
+		
+		#create a directory to store the binned pixels in
+		bin_dir = dirpath + '/bin'+str(args.bin_level)
+		if not os.path.exists(bin_dir):
+			os.makedirs(bin_dir)
+			
+	
+			
+		if filtername!='Halpha_div_R':
+		
+			#loop over the confidence corrected ccds
+			ccds = glob.glob( dirpath + '/confcorr/*.fits')
+			if len(ccds)==0:
+				print 'No ccds found'
+				print dirpath
+				raw_input('Paused')
+			
+			for ccd in ccds:
+				
+				_, ccdname = ccd.rsplit('/', 1)
+				ccdname = ccdname[:-5] #remove '.fits
+				
+				newname = bin_dir + '/' + ccdname + '_bin' + str(args.bin_level)+'.fits'
+				if os.path.exists(newname):
+					print 'Binned file already exists'
+					continue
+				
+				
+				#call the bash scripts, that uses Montage, to bin the pixels
+				#1=in.fits, 2=out.fits 3=bin factor
+         			sp.call(["mShrink", ccd, newname, args.bin_level])
+         			
+         			
+         			
+         			
+         			
+         			
+         	#if filtername == Halpha_div_R		
+         	else:
+         		#find the a and b block directories
+			block_dirs = glob.glob( dirpath + '/no_bin/*')
 
-   colour_list = make_lists.chosen_colour_pathlist(ex_path, colour_choice)
+			
+			for block in block_dirs:
+			
+				#make a subdirectory to keep the binned files in
+				_,block_name = 	block.rsplit('/', 1)
+				block_name += '_bin'+str(args.bin_level)
+				
+				binned_block_dir = bin_dir + '/' + block_name
+				if not os.path.exists(binned_block_dir):
+					os.makedirs(binned_block_dir)
+					
+				
+				#get all the unbinned ccds
+				ccds = glob.glob( block + '/*.fit')
+				if len(ccds)==0:
+					print 'No ccds found'
+					print block
+					raw_input('Paused')
 
-   #for each dir containing image ccds of selected colour, get paths to all confidence corrected ccds
-   for dirpath in colour_list:
-      if colour_choice == 'Halpha_div_R_' or colour_choice == 'Halpha_sub_R_':
-         sub_dirpaths = glob.glob(dirpath+'/no_bin/*')
-         for sub_path in sub_dirpaths:
-            _, sub_dir_name = sub_path.rsplit('/', 1)
-            bin_dirPath = dirpath +'/bin'+args.bin_level+'/'+sub_dir_name
-            if not os.path.exists(bin_dirPath):
-               os.makedirs(bin_dirPath)
-            
-            for fpath in glob.glob(sub_path+'/*.fit'):
-               print fpath
-               _, ccdName = fpath.rsplit('/',1)
-               finPath = bin_dirPath + '/' + ccdName[:-4] + '_bin' + str(args.bin_level) + '.fit'
-               if os.path.exists(finPath):
-                  print "Binned file already exists"
-                  continue
-                       
-               #1=in.fits, 2=out.fits 3=factor
-               sp.call(["mShrink", fpath, finPath, args.bin_level])
-            
-      else: #if colour not Halpha_div_R
-         bin_dirPath = dirpath + '/bin' + str(args.bin_level)  
-         if not os.path.exists(bin_dirPath):
-            os.makedirs(bin_dirPath)
-            print "%s created" %bin_dirPath
+					
+				for ccd in ccds:
+				
+					_, ccdname = ccd.rsplit('/', 1)
+					ccdname = ccdname[:-4] #remove '.fit.
+					
+					newname = binned_block_dir + '/' + ccdname + '_bin' + str(args.bin_level)+'.fits'
+					#if os.path.exists(newname):
+				#	print 'Binned file already exists'
+				#	continue
+				
+				
+				
+					#call the bash scripts, that uses Montage, to bin the pixels
+					#1=in.fits, 2=out.fits 3=factor
+              				sp.call(["mShrink", ccd, newname, args.bin_level])
+					
+		
+		
+		
+		
+			
+print 'Binning completed'		
 
-         for fpath in glob.glob(dirpath +'/confcorr/*.fit'):
-            print fpath
-            _, ccdName = fpath.rsplit('/',1)
-            finPath = bin_dirPath + '/' + ccdName[:-4] + '_bin' + str(args.bin_level) + '.fit'
-            if os.path.exists(finPath):
-               print "Binned file already exists"
-               continue
-        
-            #1=in.fits, 2=out.fits 3=factor
-            sp.call(["mShrink", fpath, finPath, args.bin_level])
 
-print "Binning completed"
+
+
+
+
+
 
 
 
