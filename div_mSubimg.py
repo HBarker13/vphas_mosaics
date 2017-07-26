@@ -45,8 +45,8 @@ for ind,pair in enumerate(pair_list):
         _, nbName = pair[1].rsplit('/', 1)
         
                 
-        red_finDir = ex_path+'/trimmed_red/R' + redName
-        nb_finDir = ex_path +'/trimmed_nb/NB' + nbName
+        red_finDir = ex_path+'/trimmed_red/' + redName
+        nb_finDir = ex_path +'/trimmed_nb/' + nbName
                 
         if not os.path.exists(red_finDir):
                 os.makedirs(red_finDir)
@@ -60,7 +60,7 @@ for ind,pair in enumerate(pair_list):
         if not os.path.exists(div_finDir):
                 os.makedirs(div_finDir)
                 print "Created final directory: %s" %div_finDir
-
+	print
 
 
 
@@ -68,22 +68,48 @@ for ind,pair in enumerate(pair_list):
         for ccdnum in range(1,33):
         	print 'CCD', ccdnum
         
+        	"""
+        	#Use confidence corrected files
         	redpath = pair[0] + '/confcorr/'+block+'_ccd'+str(ccdnum)+'.fits'
         	if not os.path.exists(redpath):
-        		print 'Path to red ccd could not be found'
+        		print 'Path to confidence corrected red ccd could not be found'
         		print redpath
-        		raw_input('Paused')
-        		
+        	
+        	        		
               	nbpath = pair[1] + '/confcorr/'+block+'_ccd'+str(ccdnum)+'.fits'
         	if not os.path.exists(nbpath):
         		print 'Path to NB ccd could not be found'
         		print nbpath
+        		print 
+        	"""
+        	
+
+		
+		#Don't use confidence corrected files
+        	redpath = glob.glob( pair[0] + '/single/*_ccds/*_ccd'+str(ccdnum)+'.fit' )
+        	redpath = redpath[0]
+        	if not os.path.exists(redpath):
+        		print 'Path to r single file could not be found'
+        		print redpath
         		raw_input('Paused')
+
+        	
+        	nbpath = glob.glob( pair[1] + '/single/*_ccds/*_ccd'+str(ccdnum)+'.fit')
+        	nbpath = nbpath[0]
+        	if not os.path.exists(nbpath):
+        		print 'Path to NB single file could not be found'
+        		print nbpath
+        		raw_input('Paused')
+        	
         
         
-                #make new image files: trim the CCDs to they're the same size  
-                  
-                
+        	print 'Input files:'
+        	print redpath
+        	print nbpath
+        	print
+        
+        
+                #make new image files: trim the CCDs to they're the same size                 
                 newRed = red_finDir+'/'+redName+'_ccd'+str(ccdnum)+'.fit'
                 #break if ccd already exists
                 if os.path.exists(newRed):
@@ -105,12 +131,26 @@ for ind,pair in enumerate(pair_list):
 
                 nb = fits.open(nbpath)
                 red = fits.open(redpath)
+                
+                """
+                # 0 for confidence corrected files, 1 for single
                 red_header = red[0].header
                 nb_header = nb[0].header
-                red_wcs = wcs.WCS(red_header)
-                nb_wcs = wcs.WCS(nb_header)
                 red_img = red[0].data
                 nb_img = nb[0].data
+                """
+                
+                
+                red_header = red[1].header
+                nb_header = nb[1].header
+                red_img = red[1].data
+                nb_img = nb[1].data
+                
+                
+                
+                red_wcs = wcs.WCS(red_header)
+                nb_wcs = wcs.WCS(nb_header)
+
                                 
                 
                 #check for nb wcs shifts relative to red in raw images and shift nb ccd into wcs of the red
@@ -132,8 +172,9 @@ for ind,pair in enumerate(pair_list):
                 else:
                         shifty = int(math.ceil(shifty))
                         
+                        
                 if shiftx<0:
-                        red_x_start=str(-shiftx) #1 counting?
+                        red_x_start=str(-shiftx) 
                         red_x_size = str(red_img.shape[1]+shiftx)
                         nb_x_start = '1'
                         nb_x_size =str(nb_img.shape[1]+shiftx)
@@ -156,26 +197,44 @@ for ind,pair in enumerate(pair_list):
                         nb_y_size = str(nb_img.shape[0]+shifty)      
                                          
                         
-               #print newRed
-               #print newNB
-               #print red_img.shape
-               #print shiftx, shifty
+               	#print newRed
+               	#print newNB
+               	#print red_img.shape
+               	#print shiftx, shifty
                         
-               #print red_x_start, red_x_size
-               #print nb_x_start, nb_x_size
-               #print red_y_start, red_y_size
-               #print nb_y_start, nb_y_size
+               	#print red_x_start, red_x_size
+               	#print nb_x_start, nb_x_size
+               	#print red_y_start, red_y_size
+               	#print nb_y_start, nb_y_size
                 
-                sp.call(["mSubimage", "-p", redpath, newRed, red_x_start, red_y_start, red_x_size, red_y_size])
-                sp.call(["mSubimage", "-p", nbpath, newNB, nb_x_start, nb_y_start, nb_x_size, nb_y_size])
-                                
+                
+               	print 'Calling mSubimage'
+               	#sp.call(["mSubimage", "-p", redpath, newRed, red_x_start, red_y_start, red_x_size, red_y_size])
+               	#sp.call(["mSubimage", "-p", nbpath, newNB, nb_x_start, nb_y_start, nb_x_size, nb_y_size])
+                
+               	#hdu 1 for the single images
+               	sp.call(["mSubimage", "-p", "-h", "1", redpath, newRed, red_x_start, red_y_start, red_x_size, red_y_size])
+               	sp.call(["mSubimage", "-p", "-h", "1", nbpath, newNB, nb_x_start, nb_y_start, nb_x_size, nb_y_size])
+                               
+                
+                if not os.path.exists(newRed):
+                	print 'Something went wrong'
+                	print 'No trimmed r file'
+                	sys.exit()               
+                	
+                if not os.path.exists(newNB):
+                	print 'Something went wrong'
+                	print 'No trimmed NB file'
+                	sys.exit()  
+                               
+                               
 
-                #Reload trimmed mosaics and divide
-                trimmed_red = fits.open(newRed)
-                trimmed_nb = fits.open(newNB)
-                trimmed_red_img = trimmed_red[0].data
-                trimmed_nb_img = trimmed_nb[0].data
-                trimmed_red_header = red[0].header
+               	#Reload trimmed mosaics and divide
+               	trimmed_red = fits.open(newRed)
+               	trimmed_nb = fits.open(newNB)
+               	trimmed_red_img = trimmed_red[0].data
+               	trimmed_nb_img = trimmed_nb[0].data
+               	trimmed_red_header = red[0].header
                 
                 
 
