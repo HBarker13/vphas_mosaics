@@ -122,7 +122,7 @@ for ind,pair in enumerate(pair_list):
                         print "Trimmed nb ccd already exists"
                         continue
 
-                divName = div_finDir+'/'+nbName+redName+'_ccd'+str(ccdnum)+'.fit'
+                divName = div_finDir+'/'+nbName+redName+'_ccd'+str(ccdnum)+'.fits'
                 #break if ccd already exists
                 if os.path.exists(divName):
                         print "Halpha/R ccd already exists"
@@ -151,7 +151,7 @@ for ind,pair in enumerate(pair_list):
                 red_wcs = wcs.WCS(red_header)
                 nb_wcs = wcs.WCS(nb_header)
 
-                                
+
                 
                 #check for nb wcs shifts relative to red in raw images and shift nb ccd into wcs of the red
                 cx = red_img.shape[0]/2
@@ -234,7 +234,9 @@ for ind,pair in enumerate(pair_list):
                	trimmed_nb = fits.open(newNB)
                	trimmed_red_img = trimmed_red[0].data
                	trimmed_nb_img = trimmed_nb[0].data
-               	trimmed_red_header = red[0].header
+               	
+               	trimmed_r_header = red_header
+               	trimmed_nb_header = nb_header
                 
                 
 
@@ -255,7 +257,7 @@ for ind,pair in enumerate(pair_list):
                 #divide the NB by the r image
                 divided_img = np.zeros((trimmed_red_img.shape[0], trimmed_red_img.shape[1]))
                 divided_img = np.true_divide(trimmed_nb_img, trimmed_red_img)
-                divided = fits.PrimaryHDU(divided_img, header=trimmed_red_header)
+                divided = fits.PrimaryHDU(divided_img, header=nb_header)
                 divided.writeto(divName, clobber=True)
 
 
