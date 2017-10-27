@@ -11,7 +11,7 @@ import sys
 import make_lists
 
 
-
+args = make_lists.get_args()
 
 
 startTime = datetime.now()
@@ -36,7 +36,7 @@ if not os.path.exists(fin_dir_path):
 
 
 #Make workdir
-workdir_path = os.getcwd() + '/'+args.vphas_num + '_' + filtername +'workdir'
+workdir_path = os.getcwd() + '/'+args.vphas_num + '_' + filtername +'_workdir'
 if not os.path.exists(workdir_path):
 	os.makedirs(workdir_path)
 	print "Working directory created"
@@ -46,10 +46,11 @@ if not os.path.exists(workdir_path):
 dirnames = glob.glob( ex_path + '/'+filtername+'*' )
 if len(dirnames)==0:
  	print 'No directories could be found'
-   	print filername
+   	print filtername
    	print ex_path
    	raw_input('Paused')
    
+ 
 
 #bin choice = y
 if args.bin_choice == 'y':
@@ -81,7 +82,7 @@ if args.bin_choice == 'y':
 		print 'No binned files found'
 		print filtername
 		print dirpath
-		continue
+		sys.exit()
 
 
 
@@ -111,27 +112,32 @@ else:
 
 	if os.path.exists( fin_fpath ):
       		print "Mosaic already exists"
-      		continue
+      		sys.exit()
          		
        	all_fpaths = []	
+       	print dirnames
        	for dirpath in dirnames:
        		print dirpath
         	
+        	
        		if filtername == 'Halpha_div_R':
+       			print 'HERE'
        			file_paths = glob.glob( dirpath + '/no_bin/*/*.fit')
       
      
        		else:
-      			file_paths = glob.glob( dirpath + '/confcorr/*.fits')
+      			#file_paths = glob.glob( dirpath + '/confcorr/*.fits')
+      			file_paths = glob.glob( dirpath + '/single/*_ccds/*.fit')
+    
             			
        		for f in file_paths:
        			all_fpaths.append(f)
             		
             			
       	if len(all_fpaths)==0:
-       		print 'No confcorr files found'
+       		print 'No input CCD files found'
        		print dirpath
-       		continue
+       		sys.exit()
 
          
          
@@ -158,7 +164,9 @@ print "Mosaicking finished: %s" %finTime
 
 
 
-
+#remove the working directory
+if os.path.exists(workdir_path):
+	os.remove(workdir_path)
 
 
 

@@ -15,7 +15,26 @@ import make_lists
 args = make_lists.get_args()
 ex_path = os.getcwd() + '/vphas_' + args.vphas_num + '_ex'
 
-filternames = ['u', 'g', 'r', 'r2', 'i', 'NB', 'Halpha_div_R']
+#filternames = ['u', 'g', 'r', 'r2', 'i', 'NB', 'Halpha_div_R']
+
+
+
+
+
+
+
+
+
+
+
+
+
+filternames = ['Halpha_div_R']
+
+
+
+
+
 
 for filtername in filternames:
 
@@ -35,27 +54,31 @@ for filtername in filternames:
 			
 		if filtername!='Halpha_div_R':
 		
-			#loop over the confidence corrected ccds
-			ccds = glob.glob( dirpath + '/confcorr/*.fits')
+			#loop over the ccd images
+			ccds = glob.glob( dirpath + '/single/*/*.fit')
 			if len(ccds)==0:
 				print 'No ccds found'
 				print dirpath
 				raw_input('Paused')
 			
 			for ccd in ccds:
-				
+						
 				_, ccdname = ccd.rsplit('/', 1)
-				ccdname = ccdname[:-5] #remove '.fits
+				ccdname = ccdname[:-4] #remove '.fit
 				
 				newname = bin_dir + '/' + ccdname + '_bin' + str(args.bin_level)+'.fits'
 				if os.path.exists(newname):
 					print 'Binned file already exists'
 					continue
+					
+					
 				
 				
 				#call the bash scripts, that uses Montage, to bin the pixels
 				#1=in.fits, 2=out.fits 3=bin factor
-         			sp.call(["mShrink", ccd, newname, args.bin_level])
+				#use hdu 1 for single images
+         			sp.call(["/usr/local/Montage_v5.0/bin/mShrink", "-h", "1", ccd, newname, args.bin_level])
+         			raw_input('')
          			
          			
          			
@@ -80,7 +103,7 @@ for filtername in filternames:
 					
 				
 				#get all the unbinned ccds
-				ccds = glob.glob( block + '/*.fit')
+				ccds = glob.glob( block + '/*.fits')
 				if len(ccds)==0:
 					print 'No ccds found'
 					print block
@@ -90,18 +113,18 @@ for filtername in filternames:
 				for ccd in ccds:
 				
 					_, ccdname = ccd.rsplit('/', 1)
-					ccdname = ccdname[:-4] #remove '.fit.
+					ccdname = ccdname[:-5] #remove '.fits
 					
 					newname = binned_block_dir + '/' + ccdname + '_bin' + str(args.bin_level)+'.fits'
-					#if os.path.exists(newname):
-				#	print 'Binned file already exists'
-				#	continue
+					if os.path.exists(newname):
+						print 'Binned file already exists'
+						continue
 				
 				
 				
 					#call the bash scripts, that uses Montage, to bin the pixels
 					#1=in.fits, 2=out.fits 3=factor
-              				sp.call(["mShrink", ccd, newname, args.bin_level])
+              				sp.call(["/usr/local/Montage_v5.0/bin/mShrink", ccd, newname, args.bin_level])
 					
 		
 		

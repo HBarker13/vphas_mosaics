@@ -31,16 +31,13 @@ def make_dir_tree(dirname):
 
 
 
-
-
 args = make_lists.get_vphas_num()
-working_path  = os.getcwd()
-vphas_dir =working_path + '/vphas_' + args.vphas_num 
+vphas_dir = os.getcwd() + '/vphas_' + args.vphas_num 
 
 
 
 #create a directory for the files to be sorted into
-vphas_ex_path = working_path + '/vphas_' + args.vphas_num + '_ex'
+vphas_ex_path = os.getcwd() + '/vphas_' + args.vphas_num + '_ex'
 if not os.path.exists( vphas_ex_path):
 	os.makedirs( vphas_ex_path)
 	print 'Created', vphas_ex_path
@@ -103,14 +100,20 @@ for x in range(0, len(filelist), 4):
 	
 	
 	#check the eso grade and continue if it isn't A or B
+	all_grades = ['A', 'B', 'C', 'D']
 	acceptable_grades = ['A', 'B', 'D'] #according to the casu webpages, D grades won't be repeated
 	try:
 		esograde = open_single[0].header['ESOGRADE']
+		print 'ESO grade:', esograde
+		if esograde not in all_grades:
+			esograde = 'A'
 	except:
 		#assume the pointing is good
-		#esograde = 'a'
-		continue
+		esograde = 'A'
+		print 'ESO grade failed'
+		#continue
 
+	
 
 		
 	if esograde not in acceptable_grades:
@@ -145,11 +148,9 @@ for x in range(0, len(filelist), 4):
 		print filegroup[0]
 		print open_single[0].header['HIERARCH ESO OBS NAME']
 		raw_input('Press any key to continue')
-	
-	
-	
-	
-	
+	print 'Filter: ', filtername
+
+
 	block_num = open_single[0].header['HIERARCH ESO TPL EXPNO']
 	
 	
@@ -157,13 +158,13 @@ for x in range(0, len(filelist), 4):
 	# THIS DOESN'T ALWAYS WORK - YOU MUST - MUUUUUUST - CHECK BEFORE CONTINUING
 	if filtername=='g' or filtername=='NB':
 		if block_num==1: block = 'a'
-		elif block_num==2: block = 'b'
-		elif block_num==3: block = 'c'
+		elif block_num==3: block = 'b'
+		elif block_num==2: block = 'c'
 		
 	else:
 		if block_num==1: block = 'a'
 		elif block_num==2: block = 'b'
-		
+	print 'Block: ', block
 	
 
 	open_single.close()
@@ -186,7 +187,7 @@ for x in range(0, len(filelist), 4):
 		if not os.path.exists(newname):
 			shutil.copyfile(oldname, newname)
 			print 'Copied', newname
-	
+	print
 
 print
 print "File sorting complete"

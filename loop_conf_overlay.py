@@ -17,7 +17,6 @@ ex_path = os.getcwd() + '/vphas_' + args.vphas_num + '_ex'
 
 #loop over directories of each filter
 filternames = ['u', 'g', 'r', 'r2', 'i', 'NB']
-#filternames = ['NB']
 for filtername in filternames:
 
 	print 'Filter', filtername
@@ -89,14 +88,11 @@ for filtername in filternames:
                     
                     
                     	#remove image pixels where the confidence is below the chosen limit
-                    	im_array = single[1].data
-                    	#newData = np.where(conf_array>confLevel, im_array, float('NaN'))
-                    	#remove negative image pixels
-                    	#newData = np.where(newData>=0, newData, float('NaN'))
+                     	newData = np.where(conf_array>confLevel, im_array, float('NaN'))
+                    	remove negative image pixels
+                    	newData = np.where(newData>=0, newData, float('NaN'))
                     
-                    
-                    	newData = im_array
-                    
+
                     	#save confidence corrected image                
                     	newHeader = single[1].header
                     	newHeader.append(('COMMENT', 'Low confidence pixels (median-3standard deviations) set to nan'))

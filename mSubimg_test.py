@@ -68,23 +68,20 @@ for ind,pair in enumerate(pair_list):
         for ccdnum in range(1,33):
         	print 'CCD', ccdnum
         
-        	"""
         	#Use confidence corrected files
-        	redpath = pair[0] + '/confcorr/'+block+'_ccd'+str(ccdnum)+'.fits'
-        	if not os.path.exists(redpath):
-        		print 'Path to confidence corrected red ccd could not be found'
-        		print redpath
+        	#redpath = pair[0] + '/confcorr/'+block+'_ccd'+str(ccdnum)+'.fits'
+        	#if not os.path.exists(redpath):
+        	#	print 'Path to confidence corrected red ccd could not be found'
+        	#	print redpath
         	
         	        		
-              	nbpath = pair[1] + '/confcorr/'+block+'_ccd'+str(ccdnum)+'.fits'
-        	if not os.path.exists(nbpath):
-        		print 'Path to NB ccd could not be found'
-        		print nbpath
-        		print 
-        	"""
+              	#nbpath = pair[1] + '/confcorr/'+block+'_ccd'+str(ccdnum)+'.fits'
+        	#if not os.path.exists(nbpath):
+        	#	print 'Path to NB ccd could not be found'
+        	#	print nbpath
+        	#	print 
         	
 
-		
 		#Don't use confidence corrected files
         	redpath = glob.glob( pair[0] + '/single/*_ccds/*_ccd'+str(ccdnum)+'.fit' )
         	redpath = redpath[0]
@@ -100,8 +97,6 @@ for ind,pair in enumerate(pair_list):
         		print 'Path to NB single file could not be found'
         		print nbpath
         		raw_input('Paused')
-        	
-        
         
         	print 'Input files:'
         	print redpath
@@ -122,7 +117,7 @@ for ind,pair in enumerate(pair_list):
                         print "Trimmed nb ccd already exists"
                         continue
 
-                divName = div_finDir+'/'+nbName+redName+'_ccd'+str(ccdnum)+'.fits'
+                divName = div_finDir+'/'+nbName+redName+'_ccd'+str(ccdnum)+'.fit'
                 #break if ccd already exists
                 if os.path.exists(divName):
                         print "Halpha/R ccd already exists"
@@ -132,13 +127,11 @@ for ind,pair in enumerate(pair_list):
                 nb = fits.open(nbpath)
                 red = fits.open(redpath)
                 
-                """
                 # 0 for confidence corrected files, 1 for single
-                red_header = red[0].header
-                nb_header = nb[0].header
-                red_img = red[0].data
-                nb_img = nb[0].data
-                """
+                #red_header = red[0].header
+                #nb_header = nb[0].header
+                #red_img = red[0].data
+                #nb_img = nb[0].data
                 
                 
                 red_header = red[1].header
@@ -147,11 +140,10 @@ for ind,pair in enumerate(pair_list):
                 nb_img = nb[1].data
                 
                 
-                
                 red_wcs = wcs.WCS(red_header)
                 nb_wcs = wcs.WCS(nb_header)
 
-
+                                
                 
                 #check for nb wcs shifts relative to red in raw images and shift nb ccd into wcs of the red
                 cx = red_img.shape[0]/2
@@ -209,12 +201,12 @@ for ind,pair in enumerate(pair_list):
                 
                 
                	print 'Calling mSubimage'
-               	#sp.call(["/usr/local/Montage_v5.0/mSubimage", "-p", redpath, newRed, red_x_start, red_y_start, red_x_size, red_y_size])
+               	#sp.call(["mSubimage", "-p", redpath, newRed, red_x_start, red_y_start, red_x_size, red_y_size])
                	#sp.call(["mSubimage", "-p", nbpath, newNB, nb_x_start, nb_y_start, nb_x_size, nb_y_size])
                 
                	#hdu 1 for the single images
-               	sp.call(["/usr/local/Montage_v5.0/bin/mSubimage", "-p", "-h", "1", redpath, newRed, red_x_start, red_y_start, red_x_size, red_y_size])
-               	sp.call(["/usr/local/Montage_v5.0/bin/mSubimage", "-p", "-h", "1", nbpath, newNB, nb_x_start, nb_y_start, nb_x_size, nb_y_size])
+               	sp.call(["mSubimage", "-p -h 1", redpath, newRed, red_x_start, red_y_start, red_x_size, red_y_size])
+               	sp.call(["mSubimage", "-p -h 1", nbpath, newNB, nb_x_start, nb_y_start, nb_x_size, nb_y_size])
                                
                 
                 if not os.path.exists(newRed):
@@ -234,9 +226,7 @@ for ind,pair in enumerate(pair_list):
                	trimmed_nb = fits.open(newNB)
                	trimmed_red_img = trimmed_red[0].data
                	trimmed_nb_img = trimmed_nb[0].data
-               	
-               	trimmed_r_header = red_header
-               	trimmed_nb_header = nb_header
+               	trimmed_red_header = red[0].header
                 
                 
 
@@ -257,7 +247,7 @@ for ind,pair in enumerate(pair_list):
                 #divide the NB by the r image
                 divided_img = np.zeros((trimmed_red_img.shape[0], trimmed_red_img.shape[1]))
                 divided_img = np.true_divide(trimmed_nb_img, trimmed_red_img)
-                divided = fits.PrimaryHDU(divided_img, header=nb_header)
+                divided = fits.PrimaryHDU(divided_img, header=trimmed_red_header)
                 divided.writeto(divName, clobber=True)
 
 
