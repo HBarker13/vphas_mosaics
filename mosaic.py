@@ -20,10 +20,10 @@ print "Mosaicing start time: %s" %startTime
 ex_path = os.getcwd() + '/vphas_' + args.vphas_num + '_ex'
 a_block, b_block, c_block = make_lists.bandmerge_list(ex_path)
 
-filternames = ['u', 'g', 'r', 'r2', 'i', 'NB', 'Halpha_div_R']
+filternames = ['u', 'g', 'r', 'r2', 'i', 'NB', 'Halpha_div_r']
 filtername = None
 while filtername not in filternames:
-	filtername = raw_input('Choose a filter: (u, g, r, r2, i, NB, Halpha_div_R) ' )
+	filtername = raw_input('Choose a filter: (u, g, r, r2, i, NB, Halpha_div_r) ' )
 
 
 
@@ -67,7 +67,7 @@ if args.bin_choice == 'y':
 	
 	for dirpath in dirnames:
 	
-		if filtername == 'Halpha_div_R_':
+		if filtername == 'Halpha_div_r':
 			bin_files = glob.glob( dirpath + '/bin'+args.bin_level + '/*/*.fit')
 				
         	else:
@@ -114,15 +114,14 @@ else:
       		print "Mosaic already exists"
       		sys.exit()
          		
+         		
        	all_fpaths = []	
-       	print dirnames
        	for dirpath in dirnames:
        		print dirpath
         	
         	
-       		if filtername == 'Halpha_div_R':
-       			print 'HERE'
-       			file_paths = glob.glob( dirpath + '/no_bin/*/*.fit')
+       		if filtername == 'Halpha_div_r':
+       			file_paths = glob.glob( dirpath + '/no_bin/*/*.fits')
       
      
        		else:
@@ -147,7 +146,7 @@ else:
         	if not os.path.exists(workdir_path+'/'+fname):
                			shutil.copy(fpath, workdir_path)
       	print "Files copied to working directory"
-
+      	print workdir_path
      		
 
 	#$1=workdir_path $2=colour choice $3=finPath $4=vphas_num
@@ -166,7 +165,7 @@ print "Mosaicking finished: %s" %finTime
 
 #remove the working directory
 if os.path.exists(workdir_path):
-	os.remove(workdir_path)
+	shutil.rmtree(workdir_path)
 
 
 

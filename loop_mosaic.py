@@ -32,7 +32,7 @@ if not os.path.exists(fin_dir_path):
 
 
 
-filternames = ['u', 'g', 'r', 'r2', 'i', 'NB', 'Halpha_div_R']
+filternames = ['u', 'g', 'r', 'r2', 'i', 'NB', 'Halpha_div_r']
 
 
 #loop through colours, taking one directory from each block
@@ -64,7 +64,7 @@ for filtername in filternames:
 
 
 
-	#bin choice = y
+	#bin choice = y  ie. want to mosaic binned pixels
 	if args.bin_choice == 'y':
 	
 	
@@ -83,7 +83,7 @@ for filtername in filternames:
 	
 		for dirpath in dirnames:
 	
-			if filtername == 'Halpha_div_R_':
+			if filtername == 'Halpha_div_r':
 				bin_files = glob.glob( dirpath + '/bin'+args.bin_level + '/*/*.fit')
 				
 
@@ -94,7 +94,7 @@ for filtername in filternames:
 	        	for fpath in bin_files:
 	         		all_bin_files.append(fpath)	
 	            		
-
+		#end if no binned imgs are found
 		if len(all_bin_files)==0:
 			print 'No binned files found'
 			print filtername
@@ -117,7 +117,7 @@ for filtername in filternames:
 
 
 
-	#bin choice = 'n'
+	#bin choice = 'n'ie. using full resolution data
    	else:
    	
    	      	fin_dir = fin_dir_path+'/'+ filtername +'_fin'
@@ -126,28 +126,34 @@ for filtername in filternames:
         		os.makedirs(fin_dir)
         		print "FinDir created"
 
-
+		
+		#skip if the mosaic already exists
       		if os.path.exists( fin_fpath ):
          		print "Mosaic already exists"
          		continue
+         		
+         		
          		
          	all_fpaths = []	
          	for dirpath in dirnames:
          		print dirpath
          	
-         		if filtername == 'Halpha_div_R':
+         		if filtername == 'Halpha_div_r':
          			file_paths = glob.glob( dirpath + '/no_bin/*/*.fit')
       
      
          		else:
-            			file_paths = glob.glob( dirpath + '/confcorr/*.fits')
+         			#confidence corrected files :creates 'holes' in the image
+         			#that can make things more difficult rather that easier
+            			#file_paths = glob.glob( dirpath + '/confcorr/*.fits') 
+            			file_paths = glob.glob( dirpath + '/single/*_ccds/*.fit')
             			
             		for f in file_paths:
             			all_fpaths.append(f)
             		
             			
             	if len(all_fpaths)==0:
-            		print 'No confcorr files found'
+            		print 'No input img files found'
             		print dirpath
             		continue
 
@@ -159,7 +165,7 @@ for filtername in filternames:
             		if not os.path.exists(workdir_path+'/'+fname):
                			shutil.copy(fpath, workdir_path)
       		print "Files copied to working directory"
-
+ 
      		
 
 		#$1=workdir_path $2=colour choice $3=finPath $4=vphas_num
