@@ -11,6 +11,9 @@ import sys
 import make_lists
 
 
+# input form:  bgflat_mosaic.py -v (pointing_number) -b (y/n) -s (#)
+#where -b is the choice whether to use binned images as input (yes or no) and -s is the shrink factor of the binned images.
+# The -s flag is not needed if binned data isn't used
 args = make_lists.get_args()
 
 
@@ -28,31 +31,31 @@ while filtername not in filternames:
 
 
 
-#Make finDir
+#Make finDir to save mosaics to
 fin_dir_path = os.getcwd() + '/vphas_' + args.vphas_num + '_fin'
 if not os.path.exists(fin_dir_path):
 	os.makedirs(fin_dir_path)
 
 
 
-#Make workdir
+#Make working directory
 workdir_path = os.getcwd() + '/'+args.vphas_num + '_' + filtername +'_workdir'
 if not os.path.exists(workdir_path):
 	os.makedirs(workdir_path)
 	print "Working directory created"
 
 
-   
+#find the directories containing files to mosaic   
 dirnames = glob.glob( ex_path + '/'+filtername+'*' )
 if len(dirnames)==0:
  	print 'No directories could be found'
    	print filtername
    	print ex_path
-   	raw_input('Paused')
+   	sys.exit()
    
  
 
-#bin choice = y
+#bin choice = y  : create a mosaic from binned data
 if args.bin_choice == 'y':
 	
 
@@ -93,14 +96,15 @@ if args.bin_choice == 'y':
        			shutil.copy(fpath, workdir_path)
 	print "Files copied to working directory"
       		
-	#call the mosaicking script
+	#call the mosaicking bash script
+	#$1=workdir_path $2=colour choice $3=finPath $4=vphas_num
 	sp.call(["mosaic.sh", workdir_path, filtername, finFile_path, args.vphas_num])  
 
 
 
 
 
-#bin choice = 'n'
+#bin choice = 'n'  ie. use full resolution imgs
 else:
    	
       	fin_dir = fin_dir_path+'/'+ filtername +'_fin'
@@ -125,6 +129,10 @@ else:
       
      
        		else:
+       			#confidence corrected files :creates 'holes' in the image
+         		#that can make things more difficult rather that easier         		
+                	#file_paths = glob.glob( dirpath + '/confcorr/*.fits')
+       		
       			#file_paths = glob.glob( dirpath + '/confcorr/*.fits')
       			file_paths = glob.glob( dirpath + '/single/*_ccds/*.fit')
     
@@ -149,6 +157,7 @@ else:
       	print workdir_path
      		
 
+	#call the mosaicking bash script
 	#$1=workdir_path $2=colour choice $3=finPath $4=vphas_num
       	sp.call(["mosaic.sh", workdir_path, filtername, fin_fpath, args.vphas_num])
      
