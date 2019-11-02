@@ -4,7 +4,7 @@ These scripts work assuming a request for a ~complete VPHAS+ pointing has been r
 It assumes there are two u, r (red block), r (blue block), i exposures, and three g and NB (narrowband Halpha) exposures, but should work without.
 
 
-These were written early in my PhD. I wouldn't count on them being robust. And they could definitely be made more efficient.
+These were written early in my PhD. They aren't "good" codes, but they work assuming everything is installed and set up in the PATH.
 
 
 
@@ -51,10 +51,10 @@ NB_####_c
 
 
 Common problems: 
-The ESO grade hasn't been properly input into the image header, adn the script has rejected it. (VPHAS+ pointings with a grade C will be repeated).
-The block assignment in the g and NB filters is wrong/incomplete. I would reccomend opening ccd 1 from each block in rgb (in ds9? ) to see how they lie on the sky. Blocks and B should not overlap, and C should be between them.
+The ESO grade hasn't been properly input into the image header, adn the script has rejected it. (VPHAS+ has finished now, but pointings with a grade D were planned to be repeated).
+The block assignment in the g and NB filters is wrong/incomplete. I would recomend opening ccd 1 from each block in rgb (in ds9 ) to see how they lie on the sky. Blocks and B should not overlap, and C should be between them.
 
-If the block assigment is wrong, just manually change the directory name 
+If the block assigment is wrong, just manually change the directory name (eg. Rename g_1234_b to g_1234_c)
 
 
 
@@ -72,12 +72,12 @@ This script creates a seperate file for all 32 CCDs (in each filter). They are p
 
 
 
-
+DO NOT USE THIS ONE-----------------------------------------------------------------------
 loop_conf_overlay.py
 Loops over all the image files and corresponding calibration files and removes any low confidence pixels. 
 DO NOT DO THIS - it makes it harder to look for new objects.
 I haven't ammended this script or the ones that follow yet, so this is still being run with the removal of pixels commented out.
-
+------------------------------------------------------------------------------------------
 
 
 div_mSubimg.py
